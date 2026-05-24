@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+import 'providers/song_provider.dart';
+import 'providers/program_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/setlist_builder_screen.dart';
@@ -15,8 +17,20 @@ import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(const ISYouthWorshipApp());
+
+  final songProvider = SongProvider();
+  final programProvider = ProgramProvider();
+  await Future.wait([songProvider.load(), programProvider.load()]);
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: songProvider),
+        ChangeNotifierProvider.value(value: programProvider),
+      ],
+      child: const ISYouthWorshipApp(),
+    ),
+  );
 }
 
 class ISYouthWorshipApp extends StatelessWidget {
@@ -31,7 +45,9 @@ class ISYouthWorshipApp extends StatelessWidget {
       home: const SplashScreen(),
       routes: {
         '/dashboard': (context) => const DashboardScreen(),
-        '/builder': (context) => const SetlistBuilderScreen(),
+        '/builder': (context) => SetlistBuilderScreen(
+              programId: ModalRoute.of(context)?.settings.arguments as String?,
+            ),
         '/songs': (context) => const SongsScreen(),
         '/team': (context) => const TeamScreen(),
         '/profile': (context) => const ProfileScreen(),

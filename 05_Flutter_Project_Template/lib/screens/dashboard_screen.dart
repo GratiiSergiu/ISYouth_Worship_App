@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/program_card.dart';
 import '../widgets/section_header.dart';
+import '../models/program.dart';
+import '../providers/program_provider.dart';
+import '../providers/song_provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -13,44 +17,37 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
 
-  final List<Map<String, dynamic>> programs = [
-    {
-      'title': 'Identitate',
-      'theme': 'Cine suntem în Hristos',
-      'date': '25 Mai 2025',
-      'status': 'DUMINICĂ',
-      'statusColor': AppColors.coral,
-      'songs': 5,
-      'duration': 48,
-      'members': 6,
-      'accentColors': [AppColors.coral, AppColors.indigo],
-      'tags': ['#tineret', '#adorare'],
-    },
-    {
-      'title': 'Credință',
-      'theme': 'Tineret ISYouth',
-      'date': '18 Mai 2025',
-      'status': 'COMPLETAT',
-      'statusColor': AppColors.success,
-      'songs': 6,
-      'duration': 52,
-      'rating': 4.8,
-      'accentColors': [AppColors.indigo, AppColors.coral],
-      'tags': ['#tineret', '#mărturie'],
-    },
-    {
-      'title': 'Har',
-      'theme': 'Serviciu Special',
-      'date': '1 Iunie 2025',
-      'status': 'ÎN AȘTEPTARE',
-      'statusColor': AppColors.warning,
-      'songs': 3,
-      'duration': 35,
-      'status2': 'Draft',
-      'accentColors': [AppColors.gray500, AppColors.indigo],
-      'tags': ['#botez', '#adorare'],
-    },
-  ];
+  String _programStatus(Program p) {
+    switch (p.status) {
+      case 'completed': return 'COMPLETAT';
+      case 'ready': return 'PROGRAMAT';
+      default: return 'DRAFT';
+    }
+  }
+
+  Color _programStatusColor(Program p) {
+    switch (p.status) {
+      case 'completed': return AppColors.success;
+      case 'ready': return AppColors.coral;
+      default: return AppColors.warning;
+    }
+  }
+
+  List<Color> _programAccent(Program p) {
+    switch (p.status) {
+      case 'completed': return [AppColors.success, AppColors.indigo];
+      case 'ready': return [AppColors.coral, AppColors.indigo];
+      default: return [AppColors.gray500, AppColors.indigo];
+    }
+  }
+
+  int _programDurationMin(Program p, SongProvider songProvider) {
+    final totalSeconds = p.setlist.fold(0, (sum, item) {
+      final song = songProvider.getSongById(item.songId);
+      return sum + (song?.durationSeconds ?? 0);
+    });
+    return (totalSeconds / 60).ceil();
+  }
 
   void _onNavTap(int index) {
     setState(() => _selectedIndex = index);
@@ -65,6 +62,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final programProvider = context.watch<ProgramProvider>();
+    final songProvider = context.watch<SongProvider>();
+    final programs = programProvider.programs;
+    final upcomingProgram = programs.isNotEmpty ? programs.first : null;
+    final recentPrograms = programs.length > 1 ? programs.sublist(1) : <Program>[];
+    final totalSongs = songProvider.songs.length;
+    final inProgress =
+        songProvider.songs.where((s) => s.status == 'learning').length;
+
     return Scaffold(
       backgroundColor: AppColors.black,
       body: SafeArea(
@@ -96,11 +102,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 child: Row(
                   children: [
-                    _quickAction('🎸', 'Repetiții', () => Navigator.pushNamed(context, '/practice')),
+                    _quickAction('🎸', 'Repetiții',
+                        () => Navigator.pushNamed(context, '/practice')),
                     const SizedBox(width: 12),
-                    _quickAction('📝', 'Program Nou', () => Navigator.pushNamed(context, '/builder')),
+                    _quickAction('📝', 'Program Nou',
+                        () => Navigator.pushNamed(context, '/builder')),
                     const SizedBox(width: 12),
-                    _quickAction('🎵', 'Cântări', () => Navigator.pushNamed(context, '/songs')),
+                    _quickAction('🎵', 'Cântări',
+                        () => Navigator.pushNamed(context, '/songs')),
                   ],
                 ),
               ),
@@ -111,11 +120,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 child: Row(
                   children: [
-                    _quickAction('📅', 'Calendar', () => Navigator.pushNamed(context, '/calendar')),
+                    _quickAction('📅', 'Calendar',
+                        () => Navigator.pushNamed(context, '/calendar')),
                     const SizedBox(width: 12),
-                    _quickAction('📊', 'Statistici', () => Navigator.pushNamed(context, '/statistics')),
+                    _quickAction('📊', 'Statistici',
+                        () => Navigator.pushNamed(context, '/statistics')),
                     const SizedBox(width: 12),
-                    _quickAction('🔔', 'Alerte', () => Navigator.pushNamed(context, '/notifications')),
+                    _quickAction('🔔', 'Alerte',
+                        () => Navigator.pushNamed(context, '/notifications')),
                   ],
                 ),
               ),
@@ -123,52 +135,84 @@ class _DashboardScreenState extends State<DashboardScreen> {
             SliverToBoxAdapter(
               child: SectionHeader(
                 title: '🎵 Următorul Program',
-                action: 'Vezi toate',
-                onAction: () {},
+                action: 'Program Nou',
+                onAction: () => Navigator.pushNamed(context, '/builder'),
               ),
             ),
-            SliverToBoxAdapter(
-              child: ProgramCard(
-                title: programs[0]['title'],
-                theme: programs[0]['theme'],
-                date: programs[0]['date'],
-                status: programs[0]['status'],
-                statusColor: programs[0]['statusColor'],
-                songs: programs[0]['songs'],
-                duration: programs[0]['duration'],
-                members: programs[0]['members'],
-                accentColors: programs[0]['accentColors'],
-                tags: programs[0]['tags'],
-                onTap: () => Navigator.pushNamed(context, '/builder'),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: SectionHeader(
-                title: '📋 Programe Recente',
-                action: null,
-                onAction: null,
-              ),
-            ),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) => ProgramCard(
-                  title: programs[index + 1]['title'],
-                  theme: programs[index + 1]['theme'],
-                  date: programs[index + 1]['date'],
-                  status: programs[index + 1]['status'],
-                  statusColor: programs[index + 1]['statusColor'],
-                  songs: programs[index + 1]['songs'],
-                  duration: programs[index + 1]['duration'],
-                  members: programs[index + 1].containsKey('members') ? programs[index + 1]['members'] : null,
-                  rating: programs[index + 1].containsKey('rating') ? programs[index + 1]['rating'] : null,
-                  status2: programs[index + 1].containsKey('status2') ? programs[index + 1]['status2'] : null,
-                  tags: programs[index + 1].containsKey('tags') ? programs[index + 1]['tags'] : null,
-                  accentColors: programs[index + 1]['accentColors'],
-                  onTap: () {},
+            if (upcomingProgram != null)
+              SliverToBoxAdapter(
+                child: ProgramCard(
+                  title: upcomingProgram.title,
+                  theme: upcomingProgram.theme,
+                  date: upcomingProgram.date,
+                  status: _programStatus(upcomingProgram),
+                  statusColor: _programStatusColor(upcomingProgram),
+                  songs: upcomingProgram.setlist.length,
+                  duration: _programDurationMin(upcomingProgram, songProvider),
+                  accentColors: _programAccent(upcomingProgram),
+                  tags: upcomingProgram.tags,
+                  onTap: () => Navigator.pushNamed(context, '/builder',
+                      arguments: upcomingProgram.id),
                 ),
-                childCount: 2,
+              )
+            else
+              SliverToBoxAdapter(
+                child: GestureDetector(
+                  onTap: () => Navigator.pushNamed(context, '/builder'),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                          color: AppColors.coral.withOpacity(0.3),
+                          style: BorderStyle.solid),
+                    ),
+                    child: const Column(
+                      children: [
+                        Text('📝', style: TextStyle(fontSize: 36)),
+                        SizedBox(height: 8),
+                        Text('Creează primul program',
+                            style: TextStyle(
+                                color: AppColors.coral,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-            ),
+            if (recentPrograms.isNotEmpty) ...[
+              SliverToBoxAdapter(
+                child: SectionHeader(
+                  title: '📋 Programe Recente',
+                  action: null,
+                  onAction: null,
+                ),
+              ),
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final p = recentPrograms[index];
+                    return ProgramCard(
+                      title: p.title,
+                      theme: p.theme,
+                      date: p.date,
+                      status: _programStatus(p),
+                      statusColor: _programStatusColor(p),
+                      songs: p.setlist.length,
+                      duration: _programDurationMin(p, songProvider),
+                      accentColors: _programAccent(p),
+                      tags: p.tags,
+                      onTap: () => Navigator.pushNamed(context, '/builder',
+                          arguments: p.id),
+                    );
+                  },
+                  childCount: recentPrograms.length,
+                ),
+              ),
+            ],
             SliverToBoxAdapter(
               child: SectionHeader(
                 title: '🎸 Repertoriu ISY',
@@ -181,9 +225,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
                   children: [
-                    _statCard('47', 'Cântări totale', AppColors.coral),
+                    _statCard('$totalSongs', 'Cântări totale', AppColors.coral),
                     const SizedBox(width: 16),
-                    _statCard('12', 'În lucru', AppColors.success),
+                    _statCard('$inProgress', 'În lucru', AppColors.success),
                   ],
                 ),
               ),
@@ -223,9 +267,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Repetiție: "Identitate"',
-                              style: TextStyle(
+                            Text(
+                              upcomingProgram != null
+                                  ? 'Repetiție: "${upcomingProgram.title}"'
+                                  : 'Nicio repetiție programată',
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.white,
