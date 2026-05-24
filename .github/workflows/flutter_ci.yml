@@ -1,0 +1,42 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.x'
+        channel: 'stable'
+
+    - name: Get dependencies
+      working-directory: ./05_Flutter_Project_Template
+      run: flutter pub get
+
+    - name: Analyze code
+      working-directory: ./05_Flutter_Project_Template
+      run: flutter analyze
+
+    - name: Run tests
+      working-directory: ./05_Flutter_Project_Template
+      run: flutter test
+
+    - name: Build APK
+      working-directory: ./05_Flutter_Project_Template
+      run: flutter build apk --release
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-apk
+        path: 05_Flutter_Project_Template/build/app/outputs/flutter-apk/app-release.apk

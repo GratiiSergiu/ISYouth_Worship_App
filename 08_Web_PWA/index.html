@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0A0A0F">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>ISYouth Worship - Web</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --isy-black: #0A0A0F;
+            --isy-surface: #1A1A24;
+            --isy-surface-elevated: #252532;
+            --isy-indigo: #4A3B6B;
+            --isy-coral: #E85D5D;
+            --isy-coral-light: #FF7A7A;
+            --isy-white: #FFFFFF;
+            --isy-gray-300: #9CA3AF;
+            --isy-gray-500: #6B7280;
+            --isy-success: #10B981;
+            --isy-warning: #F59E0B;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--isy-black);
+            color: var(--isy-white);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .install-prompt {
+            text-align: center;
+            padding: 40px 20px;
+            max-width: 400px;
+        }
+
+        .logo {
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff 0%, var(--isy-coral) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+
+        .subtitle {
+            color: var(--isy-gray-300);
+            font-size: 16px;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+        }
+
+        .features {
+            text-align: left;
+            margin: 30px 0;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--isy-surface);
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .feature-icon {
+            font-size: 24px;
+        }
+
+        .feature-text {
+            font-size: 14px;
+            color: var(--isy-gray-300);
+        }
+
+        .btn-install {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--isy-coral) 0%, var(--isy-coral-light) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .btn-install:hover {
+            opacity: 0.9;
+        }
+
+        .desktop-hint {
+            margin-top: 20px;
+            padding: 16px;
+            background: var(--isy-surface);
+            border-radius: 12px;
+            font-size: 13px;
+            color: var(--isy-gray-300);
+            line-height: 1.5;
+        }
+
+        .desktop-hint code {
+            background: var(--isy-surface-elevated);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--isy-coral);
+        }
+    </style>
+</head>
+<body>
+    <div class="install-prompt">
+        <div class="logo">ISYouth</div>
+        <div class="subtitle">WORSHIP PLANNING</div>
+
+        <div class="features">
+            <div class="feature">
+                <span class="feature-icon">🎵</span>
+                <span class="feature-text">Planifică setlist-uri și programe worship</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">👥</span>
+                <span class="feature-text">Coordonează echipa și repetițiile</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">📊</span>
+                <span class="feature-text">Analizează repertoriul și statistici</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">📱</span>
+                <span class="feature-text">Funcționează offline pe orice dispozitiv</span>
+            </div>
+        </div>
+
+        <button class="btn-install" onclick="installPWA()">
+            📲 Instalează ca Aplicație
+        </button>
+
+        <div class="desktop-hint">
+            <strong>💡 Pe desktop:</strong><br>
+            Apasă <code>Ctrl+Shift+I</code> → Toggle Device Toolbar pentru a simula mobil,<br>
+            sau folosește versiunea Flutter pentru dezvoltare nativă.
+        </div>
+    </div>
+
+    <script>
+        let deferredPrompt;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            } else {
+                alert('Pentru a instala: deschide meniul browserului și selectează "Adaugă pe ecranul de start" sau "Instalează"');
+            }
+        }
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then((reg) => {
+                console.log('Service Worker registered');
+            });
+        }
+    </script>
+</body>
+</html>

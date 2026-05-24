@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ISYouth Worship App - Prototip</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        :root {
+            --isy-black: #0A0A0F;
+            --isy-surface: #1A1A24;
+            --isy-surface-elevated: #252532;
+            --isy-indigo: #4A3B6B;
+            --isy-coral: #E85D5D;
+            --isy-coral-light: #FF7A7A;
+            --isy-white: #FFFFFF;
+            --isy-gray-100: #E5E5E5;
+            --isy-gray-300: #9CA3AF;
+            --isy-gray-500: #6B7280;
+            --isy-success: #10B981;
+            --isy-warning: #F59E0B;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .phone-frame {
+            width: 375px;
+            height: 812px;
+            background: var(--isy-black);
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.6), 0 0 0 12px #222;
+        }
+
+        .notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 30px;
+            background: #000;
+            border-radius: 0 0 20px 20px;
+            z-index: 1000;
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+            padding-top: 44px;
+            padding-bottom: 80px;
+        }
+
+        .screen::-webkit-scrollbar { display: none; }
+
+        /* === SPLASH SCREEN === */
+        .splash-screen {
+            position: absolute;
+            inset: 0;
+            background: var(--isy-black);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .splash-screen.hidden { opacity: 0; pointer-events: none; }
+
+        .splash-logo {
+            font-size: 48px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, var(--isy-coral) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+        }
+
+        .splash-subtitle {
+            color: var(--isy-gray-300);
+            font-size: 14px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .splash-gradient-bg {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 30% 50%, rgba(74,59,107,0.3) 0%, transparent 70%),
+                        radial-gradient(ellipse at 70% 50%, rgba(232,93,93,0.2) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* === HEADER === */
+        .header {
+            position: sticky;
+            top: 0;
+            background: linear-gradient(180deg, var(--isy-black) 0%, rgba(10,10,15,0.95) 100%);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--isy-white);
+        }
+
+        .header-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--isy-surface);
+            border: none;
+            color: var(--isy-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .header-btn:active { transform: scale(0.95); }
+
+        /* === SECTION HEADERS === */
+        .section-header {
+            padding: 20px 20px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--isy-gray-300);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-link {
+            font-size: 13px;
+            color: var(--isy-coral);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        /* === CARDS === */
+        .card {
+            background: var(--isy-surface);
+            border-radius: 16px;
+            margin: 0 16px 12px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:active { transform: scale(0.98); }
+
+        .card-accent {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, var(--isy-coral) 0%, var(--isy-indigo) 100%);
+            border-radius: 16px 0 0 16px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--isy-white);
+        }
+
+        .card-badge {
+            background: rgba(232,93,93,0.15);
+            color: var(--isy-coral);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .card-meta {
+            font-size: 14px;
+            color: var(--isy-gray-300);
+            margin-bottom: 4px;
+        }
+
+        .card-footer {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--isy-surface-elevated);
+        }
+
+        .card-stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            color: var(--isy-gray-300);
+        }
+
+        /* === SONG LIST === */
+        .song-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--isy-surface-elevated);
+            cursor: pointer;
+        }
+
+        .song-item:active { background: var(--isy-surface-elevated); }
+
+        .song-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: var(--isy-surface-elevated);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--isy-gray-300);
+        }
+
+        .song-number.active {
+            background: var(--isy-coral);
+            color: var(--isy-white);
+        }
+
+        .song-info { flex: 1; }
+
+        .song-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--isy-white);
+            margin-bottom: 2px;
+        }
+
+        .song-artist {
+            font-size: 13px;
+            color: var(--isy-gray-300);
+        }
+
+        .song-tags {
+            display: flex;
+            gap: 6px;
+        }
+
+        .song-tag {
+            font-size: 11px;
+            color: var(--isy-gray-500);
+            background: var(--isy-surface-elevated);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .song-tag.key { color: var(--isy-coral); }
+
+        /* === FAB === */
+        .fab {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--isy-coral) 0%, var(--isy-coral-light) 100%);
+            border: none;
+            color: var(--isy-white);
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(232,93,93,0.4);
+            z-index: 200;
+            transition: transform 0.2s;
+        }
+
+        .fab:active { transform: scale(0.92); }
+
+        /* === BOTTOM NAV === */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: rgba(10,10,15,0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            z-index: 1000;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            padding: 8px 16px;
+            border: none;
+            background: none;
+        }
+
+        .nav-icon {
+            font-size: 22px;
+            color: var(--isy-gray-500);
+            transition: color 0.2s;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            color: var(--isy-gray-500);
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-item.active .nav-icon,
+        .nav-item.active .nav-label {
+            color: var(--isy-coral);
+        }
+
+        /* === SCREEN TRANSITIONS === */
+        .screen-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .screen-content.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* === SETLIST BUILDER === */
+        .builder-header {
+            padding: 16px 20px;
+            background: var(--isy-surface);
+        }
+
+        .input-field {
+            width: 100%;
+            background: var(--isy-surface-elevated);
+            border: 1px solid transparent;
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: var(--isy-white);
+            font-size: 16px;
+            font-family: inherit;
+            margin-bottom: 12px;
+            outline: none;
+        }
+
+        .input-field:focus {
+            border-color: var(--isy-coral);
+            box-shadow: 0 0 0 3px rgba(232,93,93,0.15);
+        }
+
+        .input-field::placeholder { color: var(--isy-gray-500); }
+
+        .builder-list {
+            padding: 0 16px;
+        }
+
+        .builder-item {
+            background: var(--isy-surface);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .builder-drag {
+            color: var(--isy-gray-500);
+            font-size: 18px;
+            cursor: grab;
+        }
+
+        .builder-info { flex: 1; }
+
+        .builder-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--isy-white);
+        }
+
+        .builder-meta {
+            font-size: 12px;
+            color: var(--isy-gray-300);
+            margin-top: 2px;
+        }
+
+        .builder-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .builder-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--isy-surface-elevated);
+            border: none;
+            color: var(--isy-gray-300);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .builder-btn.delete { color: var(--isy-coral); }
+
+        .builder-footer {
+            padding: 16px 20px;
+            position: sticky;
+            bottom: 64px;
+            background: linear-gradient(0deg, var(--isy-black) 0%, transparent 100%);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--isy-coral) 0%, var(--isy-coral-light) 100%);
+            color: var(--isy-white);
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(232,93,93,0.3);
+        }
+
+        .btn-primary:active { transform: scale(0.98); }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            background: transparent;
+            border: 1.5px solid var(--isy-coral);
+            color: var(--isy-coral);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* === LIVE MODE === */
+        .live-screen {
+            position: absolute;
+            inset: 0;
+            background: var(--isy-black);
+            z-index: 500;
+            display: none;
+            flex-direction: column;
+        }
+
+        .live-screen.active { display: flex; }
+
+        .live-header {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .live-program-name {
+            font-size: 14px;
+            color: var(--isy-gray-300);
+        }
+
+        .live-recording {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--isy-coral);
+        }
+
+        .rec-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--isy-coral);
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .live-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .live-song-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--isy-white);
+            margin-bottom: 6px;
+        }
+
+        .live-song-artist {
+            font-size: 14px;
+            color: var(--isy-gray-300);
+            margin-bottom: 40px;
+        }
+
+        .live-lyrics {
+            font-size: 20px;
+            line-height: 1.8;
+            color: var(--isy-white);
+            max-width: 100%;
+        }
+
+        .live-lyrics .highlight {
+            color: var(--isy-coral);
+            font-weight: 600;
+        }
+
+        .live-progress {
+            padding: 20px;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: var(--isy-surface-elevated);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 45%;
+            background: linear-gradient(90deg, var(--isy-coral) 0%, var(--isy-coral-light) 100%);
+            border-radius: 2px;
+        }
+
+        .progress-time {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--isy-gray-300);
+        }
+
+        .live-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 32px;
+            padding: 20px;
+        }
+
+        .live-btn {
+            background: none;
+            border: none;
+            color: var(--isy-white);
+            font-size: 28px;
+            cursor: pointer;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .live-btn.play {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--isy-coral) 0%, var(--isy-coral-light) 100%);
+            font-size: 24px;
+        }
+
+        .live-next {
+            padding: 12px 20px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--isy-gray-300);
+            border-top: 1px solid var(--isy-surface-elevated);
+        }
+
+        .live-next span {
+            color: var(--isy-coral);
+            font-weight: 600;
+        }
+
+        /* === REPERTORIU === */
+        .search-bar {
+            padding: 12px 16px;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--isy-surface);
+            border: 1px solid var(--isy-surface-elevated);
+            border-radius: 12px;
+            padding: 12px 16px 12px 40px;
+            color: var(--isy-white);
+            font-size: 15px;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .search-input:focus { border-color: var(--isy-coral); }
+
+        .search-input::placeholder { color: var(--isy-gray-500); }
+
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            padding: 0 16px 12px;
+            overflow-x: auto;
+        }
+
+        .filter-tabs::-webkit-scrollbar { display: none; }
+
+        .filter-tab {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: var(--isy-surface);
+            border: none;
+            color: var(--isy-gray-300);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: inherit;
+        }
+
+        .filter-tab.active {
+            background: var(--isy-coral);
+            color: var(--isy-white);
+        }
+
+        /* === EMPTY STATE === */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--isy-white);
+            margin-bottom: 8px;
+        }
+
+        .empty-desc {
+            font-size: 14px;
+            color: var(--isy-gray-300);
+            max-width: 260px;
+        }
+
+        /* === MODAL === */
+        .modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            display: none;
+            align-items: flex-end;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal-sheet {
+            width: 100%;
+            background: var(--isy-surface);
+            border-radius: 24px 24px 0 0;
+            padding: 20px;
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-handle {
+            width: 40px;
+            height: 4px;
+            background: var(--isy-gray-500);
+            border-radius: 2px;
+            margin: 0 auto 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--isy-white);
+            margin-bottom: 20px;
+        }
+
+        .modal-option {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+
+        .modal-option:active { background: var(--isy-surface-elevated); }
+
+        .modal-option-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--isy-surface-elevated);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .modal-option-text {
+            flex: 1;
+        }
+
+        .modal-option-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--isy-white);
+        }
+
+        .modal-option-desc {
+            font-size: 13px;
+            color: var(--isy-gray-300);
+            margin-top: 2px;
+        }
+
+        .modal-close {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            background: var(--isy-surface-elevated);
+            border: none;
+            color: var(--isy-white);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+            font-family: inherit;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <div class="notch"></div>
+
+        <!-- SPLASH SCREEN -->
+        <div class="splash-screen" id="splash">
+            <div class="splash-gradient-bg"></div>
+            <div class="splash-logo">ISYouth</div>
+            <div class="splash-subtitle">Worship Planning</div>
+        </div>
+
+        <!-- LIVE MODE OVERLAY -->
+        <div class="live-screen" id="liveScreen">
+            <div class="live-header">
+                <div class="live-program-name">"Identitate" • 25 Mai</div>
+                <div class="live-recording">
+                    <div class="rec-dot"></div>
+                    LIVE
+                </div>
+            </div>
+            <div class="live-content">
+                <div class="live-song-title">Oceans (Where Feet May Fail)</div>
+                <div class="live-song-artist">Hillsong United • Do major • 4:32</div>
+                <div class="live-lyrics">
+                    You call me out upon the waters<br>
+                    The great unknown where feet may fail<br>
+                    And there I find You in the mystery<br>
+                    In oceans deep my faith will stand
+                </div>
+            </div>
+            <div class="live-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <div class="progress-time">
+                    <span>2:05</span>
+                    <span>4:32</span>
+                </div>
+            </div>
+            <div class="live-controls">
+                <button class="live-btn">⏮</button>
+                <button class="live-btn play">⏸</button>
+                <button class="live-btn">⏭</button>
+                <button class="live-btn">🔁</button>
+            </div>
+            <div class="live-next">Următor: <span>Way Maker</span></div>
+            <button class="modal-close" onclick="closeLive()" style="margin: 0 20px 20px;">Închide Live Mode</button>
+        </div>
+
+        <!-- MODAL OVERLAY -->
+        <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+            <div class="modal-sheet">
+                <div class="modal-handle"></div>
+                <div class="modal-title">Adaugă în program</div>
+                <div class="modal-option" onclick="alert('Cântare adăugată!')">
+                    <div class="modal-option-icon">🎵</div>
+                    <div class="modal-option-text">
+                        <div class="modal-option-title">Din repertoriu</div>
+                        <div class="modal-option-desc">Alege din cântările ISYouth</div>
+                    </div>
+                </div>
+                <div class="modal-option" onclick="alert('Cântare nouă!')">
+                    <div class="modal-option-icon">✨</div>
+                    <div class="modal-option-text">
+                        <div class="modal-option-title">Cântare nouă</div>
+                        <div class="modal-option-desc">Adaugă manual titlu și versuri</div>
+                    </div>
+                </div>
+                <div class="modal-option" onclick="alert('Import!')">
+                    <div class="modal-option-icon">📥</div>
+                    <div class="modal-option-text">
+                        <div class="modal-option-title">Import</div>
+                        <div class="modal-option-desc">Din ChordPro, PDF sau CCLI</div>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closeModal()">Anulează</button>
+            </div>
+        </div>
+
+        <!-- MAIN SCREEN -->
+        <div class="screen" id="mainScreen">
+
+            <!-- DASHBOARD SCREEN -->
+            <div class="screen-content active" id="screen-dashboard">
+                <div class="header">
+                    <button class="header-btn">☰</button>
+                    <div class="header-title">ISYouth Worship</div>
+                    <button class="header-btn">👤</button>
+                </div>
+
+                <div class="section-header">
+                    <div class="section-title">🎵 Următorul Program</div>
+                    <a href="#" class="section-link">Vezi toate</a>
+                </div>
+
+                <div class="card" onclick="goToBuilder()">
+                    <div class="card-accent"></div>
+                    <div class="card-header">
+                        <div class="card-title">"Identitate"</div>
+                        <div class="card-badge">DUMINICĂ</div>
+                    </div>
+                    <div class="card-meta">25 Mai 2025 • Tineret ISYouth</div>
+                    <div class="card-footer">
+                        <div class="card-stat">🎵 5 cântări</div>
+                        <div class="card-stat">⏱ 48 min</div>
+                        <div class="card-stat">👥 6 membri</div>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <div class="section-title">📋 Programe Recente</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-accent" style="background: linear-gradient(180deg, var(--isy-indigo) 0%, var(--isy-coral) 100%);"></div>
+                    <div class="card-header">
+                        <div class="card-title">"Credință"</div>
+                        <div class="card-badge" style="background: rgba(16,185,129,0.15); color: var(--isy-success);">COMPLETAT</div>
+                    </div>
+                    <div class="card-meta">18 Mai 2025 • Tineret ISYouth</div>
+                    <div class="card-footer">
+                        <div class="card-stat">🎵 6 cântări</div>
+                        <div class="card-stat">⏱ 52 min</div>
+                        <div class="card-stat">⭐ 4.8/5</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-accent" style="background: linear-gradient(180deg, var(--isy-gray-500) 0%, var(--isy-indigo) 100%);"></div>
+                    <div class="card-header">
+                        <div class="card-title">"Har"</div>
+                        <div class="card-badge" style="background: rgba(245,158,11,0.15); color: var(--isy-warning);">ÎN AȘTEPTARE</div>
+                    </div>
+                    <div class="card-meta">1 Iunie 2025 • Serviciu Special</div>
+                    <div class="card-footer">
+                        <div class="card-stat">🎵 3 cântări</div>
+                        <div class="card-stat">⏱ 35 min</div>
+                        <div class="card-stat">⏳ Draft</div>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <div class="section-title">🎸 Repertoriu ISY</div>
+                    <a href="#" class="section-link" onclick="goToSongs()">Toate cântările</a>
+                </div>
+
+                <div style="padding: 0 20px;">
+                    <div style="display: flex; gap: 16px; margin-bottom: 20px;">
+                        <div style="flex: 1; background: var(--isy-surface); border-radius: 16px; padding: 20px; text-align: center;">
+                            <div style="font-size: 28px; font-weight: 700; color: var(--isy-coral);">47</div>
+                            <div style="font-size: 12px; color: var(--isy-gray-300); margin-top: 4px;">Cântări totale</div>
+                        </div>
+                        <div style="flex: 1; background: var(--isy-surface); border-radius: 16px; padding: 20px; text-align: center;">
+                            <div style="font-size: 28px; font-weight: 700; color: var(--isy-success);">12</div>
+                            <div style="font-size: 12px; color: var(--isy-gray-300); margin-top: 4px;">În lucru</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="height: 20px;"></div>
+            </div>
+
+            <!-- SETLIST BUILDER SCREEN -->
+            <div class="screen-content" id="screen-builder">
+                <div class="header">
+                    <button class="header-btn" onclick="goToDashboard()">←</button>
+                    <div class="header-title">Program Nou</div>
+                    <button class="header-btn">✓</button>
+                </div>
+
+                <div class="builder-header">
+                    <input type="text" class="input-field" placeholder="Tema programului (ex: Identitate)">
+                    <input type="text" class="input-field" placeholder="Data (ex: 25 Mai 2025)">
+                    <input type="text" class="input-field" placeholder="Notițe pentru echipă...">
+                </div>
+
+                <div class="section-header" style="padding-top: 8px;">
+                    <div class="section-title">Setlist</div>
+                    <span style="font-size: 13px; color: var(--isy-gray-300);">Durată: 48 min</span>
+                </div>
+
+                <div class="builder-list">
+                    <div class="builder-item">
+                        <div class="builder-drag">≡</div>
+                        <div class="builder-info">
+                            <div class="builder-title">Oceans (Where Feet May Fail)</div>
+                            <div class="builder-meta">Hillsong United • Do major • 4:32</div>
+                        </div>
+                        <div class="builder-actions">
+                            <button class="builder-btn">✏️</button>
+                            <button class="builder-btn delete">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="builder-item">
+                        <div class="builder-drag">≡</div>
+                        <div class="builder-info">
+                            <div class="builder-title">Way Maker</div>
+                            <div class="builder-meta">Sinach • Sol major • 5:45</div>
+                        </div>
+                        <div class="builder-actions">
+                            <button class="builder-btn">✏️</button>
+                            <button class="builder-btn delete">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="builder-item">
+                        <div class="builder-drag">≡</div>
+                        <div class="builder-info">
+                            <div class="builder-title">Graves Into Gardens</div>
+                            <div class="builder-meta">Elevation Worship • La minor • 4:18</div>
+                        </div>
+                        <div class="builder-actions">
+                            <button class="builder-btn">✏️</button>
+                            <button class="builder-btn delete">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="builder-item">
+                        <div class="builder-drag">≡</div>
+                        <div class="builder-info">
+                            <div class="builder-title">What A Beautiful Name</div>
+                            <div class="builder-meta">Hillsong Worship • Re major • 5:20</div>
+                        </div>
+                        <div class="builder-actions">
+                            <button class="builder-btn">✏️</button>
+                            <button class="builder-btn delete">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="builder-item">
+                        <div class="builder-drag">≡</div>
+                        <div class="builder-info">
+                            <div class="builder-title">Goodness of God</div>
+                            <div class="builder-meta">Bethel Music • Do major • 4:52</div>
+                        </div>
+                        <div class="builder-actions">
+                            <button class="builder-btn">✏️</button>
+                            <button class="builder-btn delete">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="height: 100px;"></div>
+
+                <div class="builder-footer">
+                    <button class="btn-primary" onclick="openLive()">▶ Live Mode</button>
+                    <button class="btn-secondary">💾 Salvează & Trimite Echipei</button>
+                </div>
+            </div>
+
+            <!-- REPERTORIU SCREEN -->
+            <div class="screen-content" id="screen-songs">
+                <div class="header">
+                    <button class="header-btn" onclick="goToDashboard()">←</button>
+                    <div class="header-title">Repertoriu ISY</div>
+                    <button class="header-btn">＋</button>
+                </div>
+
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="🔍 Caută cântare..." id="songSearch">
+                </div>
+
+                <div class="filter-tabs">
+                    <button class="filter-tab active">Toate</button>
+                    <button class="filter-tab">Repertoire</button>
+                    <button class="filter-tab">În lucru</button>
+                    <button class="filter-tab">Nou</button>
+                    <button class="filter-tab">Favorite</button>
+                </div>
+
+                <div class="song-item">
+                    <div class="song-number active">1</div>
+                    <div class="song-info">
+                        <div class="song-title">Oceans (Where Feet May Fail)</div>
+                        <div class="song-artist">Hillsong United</div>
+                    </div>
+                    <div class="song-tags">
+                        <span class="song-tag key">Do</span>
+                        <span class="song-tag">4:32</span>
+                        <span class="song-tag">✅</span>
+                    </div>
+                </div>
+
+                <div class="song-item">
+                    <div class="song-number active">2</div>
+                    <div class="song-info">
+                        <div class="song-title">Way Maker</div>
+                        <div class="song-artist">Sinach</div>
+                    </div>
+                    <div class="song-tags">
+                        <span class="song-tag key">Sol</span>
+                        <span class="song-tag">5:45</span>
+                        <span class="song-tag">✅</span>
+                    </div>
+                </div>
+
+                <div class="song-item">
+                    <div class="song-number">3</div>
+                    <div class="song-info">
+                        <div class="song-title">Graves Into Gardens</div>
+                        <div class="song-artist">Elevation Worship</div>
+                    </div>
+                    <div class="song-tags">
+                        <span class="song-tag key">La m</span>
+                        <span class="song-tag">4:18</span>
+                        <span class="song-tag">✅</span>
+                    </div>
+                </div>
+
+                <div class="song-item">
+                    <div class="song-number">4</div>
+                    <div class="song-info">
+                        <div class="song-title">What A Beautiful Name</div>
+                        <div class="song-artist">Hillsong Worship</div>
+                    </div>
+                    <div class="song-tags">
+                        <span class="song-tag key">Re</span>
+                        <span class="song-tag">5:20</span>
+                        <span class="song-tag">✅</span>
+                    </div>
+                </div>
+
+                <div class="song-item">
+                    <div class="song-number">5</div>
+                    <div class="song-info">
+                        <div class="song-title">Goodness of God</div>
+                        <div class="song-artist">Bethel Music</div>
+                    </div>
+                    <div class="song-tags">
+                        <span class="song-tag key">Do</span>
+                        <span class="song-tag">4:52</span>
+                        <span class="song-tag">✅</span>
+                    </div>
+                </div>
+
+                <div class="song-item">
+                    <div class="song-number" style="background: rgba(245,158,11,0.2); color: var(--isy-warning);">🔄</div>
+                    <div class="song-info">
+                        <div class="song-title">Build My Life</div>
+                        <div class="song-artist">Pat Barrett</div>
+                    </div>
+                    <div class="song-tags">
+                        <span class="song-tag key">Mi</span>
+                        <span class="song-tag">4:15</span>
+                        <span class="song-tag" style="color: var(--isy-warning);">În lucru</span>
+                    </div>
+                </div>
+
+                <div class="song-item">
+                    <div class="song-number" style="background: rgba(16,185,129,0.2); color: var(--isy-success);">✨</div>
+                    <div class="song-info">
+                        <div class="song-title">Firm Foundation</div>
+                        <div class="song-artist">Cody Carnes</div>
+                    </div>
+                    <div class="song-tags">
+                        <span class="song-tag key">Fa</span>
+                        <span class="song-tag">3:48</span>
+                        <span class="song-tag" style="color: var(--isy-success);">Nou</span>
+                    </div>
+                </div>
+
+                <div style="height: 40px;"></div>
+            </div>
+
+            <!-- ECHIPA SCREEN -->
+            <div class="screen-content" id="screen-team">
+                <div class="header">
+                    <button class="header-btn" onclick="goToDashboard()">←</button>
+                    <div class="header-title">Echipa ISY</div>
+                    <button class="header-btn">＋</button>
+                </div>
+
+                <div class="section-header">
+                    <div class="section-title">Membri activi</div>
+                    <span style="font-size: 13px; color: var(--isy-gray-300);">6 membri</span>
+                </div>
+
+                <div class="song-item">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--isy-coral) 0%, var(--isy-indigo) 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 16px;">A</div>
+                    <div class="song-info">
+                        <div class="song-title">Andrei Popescu</div>
+                        <div class="song-artist">Lider Worship • Chitară</div>
+                    </div>
+                    <div class="song-tag" style="background: rgba(232,93,93,0.15); color: var(--isy-coral);">Admin</div>
+                </div>
+
+                <div class="song-item">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--isy-indigo) 0%, #6B5B95 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 16px;">M</div>
+                    <div class="song-info">
+                        <div class="song-title">Maria Ionescu</div>
+                        <div class="song-artist">Voce • Pian</div>
+                    </div>
+                    <div class="song-tag">Membru</div>
+                </div>
+
+                <div class="song-item">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #10B981 0%, #059669 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 16px;">A</div>
+                    <div class="song-info">
+                        <div class="song-title">Alex Dumitru</div>
+                        <div class="song-artist">Tobe • Percuție</div>
+                    </div>
+                    <div class="song-tag">Membru</div>
+                </div>
+
+                <div class="song-item">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--isy-warning) 0%, #D97706 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 16px;">C</div>
+                    <div class="song-info">
+                        <div class="song-title">Cristina Marin</div>
+                        <div class="song-artist">Voce • Chitară bass</div>
+                    </div>
+                    <div class="song-tag">Membru</div>
+                </div>
+
+                <div class="song-item">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 16px;">D</div>
+                    <div class="song-info">
+                        <div class="song-title">David Stan</div>
+                        <div class="song-artist">Tehnică sunet • Proiecții</div>
+                    </div>
+                    <div class="song-tag">Tehnic</div>
+                </div>
+
+                <div class="song-item">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 16px;">E</div>
+                    <div class="song-info">
+                        <div class="song-title">Elena Rusu</div>
+                        <div class="song-artist">Voce • Backing vocals</div>
+                    </div>
+                    <div class="song-tag">Membru</div>
+                </div>
+
+                <div style="height: 40px;"></div>
+            </div>
+
+            <!-- PROFIL SCREEN -->
+            <div class="screen-content" id="screen-profile">
+                <div class="header">
+                    <div class="header-title">Profil</div>
+                    <button class="header-btn">⚙️</button>
+                </div>
+
+                <div style="display: flex; flex-direction: column; align-items: center; padding: 40px 20px;">
+                    <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--isy-coral) 0%, var(--isy-indigo) 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 32px; margin-bottom: 16px;">A</div>
+                    <div style="font-size: 20px; font-weight: 600; color: var(--isy-white);">Andrei Popescu</div>
+                    <div style="font-size: 14px; color: var(--isy-gray-300); margin-top: 4px;">Lider Worship • Admin</div>
+                    <div style="font-size: 13px; color: var(--isy-coral); margin-top: 8px;">ISYouth Worship</div>
+                </div>
+
+                <div class="section-header">
+                    <div class="section-title">Statistici</div>
+                </div>
+
+                <div style="padding: 0 20px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+                        <div style="background: var(--isy-surface); border-radius: 16px; padding: 20px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; color: var(--isy-coral);">23</div>
+                            <div style="font-size: 12px; color: var(--isy-gray-300); margin-top: 4px;">Programe create</div>
+                        </div>
+                        <div style="background: var(--isy-surface); border-radius: 16px; padding: 20px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; color: var(--isy-success);">47</div>
+                            <div style="font-size: 12px; color: var(--isy-gray-300); margin-top: 4px;">Cântări adăugate</div>
+                        </div>
+                        <div style="background: var(--isy-surface); border-radius: 16px; padding: 20px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; color: var(--isy-indigo);">156</div>
+                            <div style="font-size: 12px; color: var(--isy-gray-300); margin-top: 4px;">Ore de worship</div>
+                        </div>
+                        <div style="background: var(--isy-surface); border-radius: 16px; padding: 20px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; color: var(--isy-warning);">12</div>
+                            <div style="font-size: 12px; color: var(--isy-gray-300); margin-top: 4px;">Repetiții</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <div class="section-title">Setări</div>
+                </div>
+
+                <div style="padding: 0 16px;">
+                    <div class="card" style="margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <span style="color: var(--isy-white); font-size: 16px;">🔔 Notificări</span>
+                            <div style="width: 48px; height: 28px; background: var(--isy-coral); border-radius: 14px; position: relative;">
+                                <div style="width: 24px; height: 24px; background: white; border-radius: 50%; position: absolute; top: 2px; right: 2px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card" style="margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <span style="color: var(--isy-white); font-size: 16px;">🌙 Dark Mode</span>
+                            <div style="width: 48px; height: 28px; background: var(--isy-coral); border-radius: 14px; position: relative;">
+                                <div style="width: 24px; height: 24px; background: white; border-radius: 50%; position: absolute; top: 2px; right: 2px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card" style="margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <span style="color: var(--isy-white); font-size: 16px;">🎵 Auto-scroll versuri</span>
+                            <div style="width: 48px; height: 28px; background: var(--isy-surface-elevated); border-radius: 14px; position: relative;">
+                                <div style="width: 24px; height: 24px; background: var(--isy-gray-500); border-radius: 50%; position: absolute; top: 2px; left: 2px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card" style="margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <span style="color: var(--isy-white); font-size: 16px;">📥 Descărcare offline</span>
+                            <div style="width: 48px; height: 28px; background: var(--isy-coral); border-radius: 14px; position: relative;">
+                                <div style="width: 24px; height: 24px; background: white; border-radius: 50%; position: absolute; top: 2px; right: 2px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="padding: 20px;">
+                    <button class="btn-secondary" style="border-color: var(--isy-gray-500); color: var(--isy-gray-300);">🚪 Deconectare</button>
+                </div>
+
+                <div style="height: 40px;"></div>
+            </div>
+
+            <!-- FAB -->
+            <button class="fab" id="fabBtn" onclick="openModal()">＋</button>
+
+            <!-- BOTTOM NAV -->
+            <div class="bottom-nav">
+                <button class="nav-item active" onclick="switchTab('dashboard')">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-label">Acasă</span>
+                </button>
+                <button class="nav-item" onclick="switchTab('songs')">
+                    <span class="nav-icon">🎵</span>
+                    <span class="nav-label">Cântări</span>
+                </button>
+                <button class="nav-item" onclick="switchTab('builder')">
+                    <span class="nav-icon">📝</span>
+                    <span class="nav-label">Program</span>
+                </button>
+                <button class="nav-item" onclick="switchTab('team')">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-label">Echipa</span>
+                </button>
+                <button class="nav-item" onclick="switchTab('profile')">
+                    <span class="nav-icon">👤</span>
+                    <span class="nav-label">Profil</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Splash screen
+        setTimeout(() => {
+            document.getElementById('splash').classList.add('hidden');
+        }, 2500);
+
+        // Navigation
+        function switchTab(tab) {
+            // Hide all screens
+            document.querySelectorAll('.screen-content').forEach(s => s.classList.remove('active'));
+            // Show selected screen
+            document.getElementById('screen-' + tab).classList.add('active');
+            // Update nav
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            // Show/hide FAB
+            const fab = document.getElementById('fabBtn');
+            if (tab === 'dashboard') {
+                fab.style.display = 'flex';
+            } else {
+                fab.style.display = 'none';
+            }
+        }
+
+        function goToDashboard() {
+            document.querySelectorAll('.screen-content').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-dashboard').classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.nav-item')[0].classList.add('active');
+            document.getElementById('fabBtn').style.display = 'flex';
+        }
+
+        function goToBuilder() {
+            document.querySelectorAll('.screen-content').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-builder').classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.nav-item')[2].classList.add('active');
+            document.getElementById('fabBtn').style.display = 'none';
+        }
+
+        function goToSongs() {
+            document.querySelectorAll('.screen-content').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-songs').classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.nav-item')[1].classList.add('active');
+            document.getElementById('fabBtn').style.display = 'none';
+        }
+
+        // Modal
+        function openModal() {
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        function closeModal(e) {
+            if (!e || e.target === document.getElementById('modalOverlay')) {
+                document.getElementById('modalOverlay').classList.remove('active');
+            }
+        }
+
+        // Live Mode
+        function openLive() {
+            document.getElementById('liveScreen').classList.add('active');
+        }
+
+        function closeLive() {
+            document.getElementById('liveScreen').classList.remove('active');
+        }
+
+        // Search filter
+        document.getElementById('songSearch').addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('#screen-songs .song-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(term) ? 'flex' : 'none';
+            });
+        });
+
+        // Filter tabs
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
