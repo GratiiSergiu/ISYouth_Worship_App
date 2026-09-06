@@ -1,0 +1,6 @@
+{
+  "name": "ISYouth Worship",
+  "description": "Worship planning and team coordination app for worship teams",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
